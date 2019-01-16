@@ -1,0 +1,18 @@
+------- pt-plug.sh contents
+#!/bin/bash
+trg_plugin() {
+mysqladmin $EXT_ARGV ping &> /dev/null
+mysqld_alive=$?
+if [[ $mysqld_alive == 0 ]]
+then
+seconds_behind_master=$(mysql $EXT_ARGV -e "show slave status" --vertical | grep Seconds_Behind_Master | awk '{print $2}')
+echo $seconds_behind_master
+else
+echo 1
+fi
+}
+# Uncomment below to test that trg_plugin function works as expected
+#trg_plugin
+-------
+-- That's the pt-plug.sh file you would need to create and then use it as below with pt-stalk:
+$ /usr/bin/pt-stalk --function=/root/pt-plug.sh --variable=seconds_behind_master --threshold=300 --cycles=60 --notify-by-email=support@emergencydba.com --log=/root/pt-stalk.log --pid=/root/pt-stalk.pid --daemonize
